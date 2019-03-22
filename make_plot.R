@@ -18,4 +18,4 @@ data %>%
   scale_color_viridis_d() +
   labs(x = 'Time (s)', y = 'Normalized Fluorescence') +
   scale_y_continuous(breaks = seq(0, 1, by = 0.2))
-ggsave(filename = file.path(out.dir, paste('plot', no.ext, '.pdf', sep = '')), width = 6, height = 4)
+ggsave(filename = file.path(out.dir, paste('plot_', no.ext, '.pdf', sep = '')), width = 6, height = 4)
