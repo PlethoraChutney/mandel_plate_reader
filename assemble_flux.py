@@ -36,7 +36,7 @@ def collect_data(file, time_increment, quiet):
 
     rows_list = []
     for row in range(data.shape[0]):
-        # the plate reader writes the time only once each time it reads the plate
+        # The plate reader writes the time only once each time it reads the plate
         # it also writes a new header column each time we switch to a new plate,
         # which we do after adding a reagent
         #
