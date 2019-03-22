@@ -148,6 +148,7 @@ def collect_data(file, time_increment, quiet):
 
     to_return = pd.DataFrame(rows_list)
     to_return.dropna(inplace = True, how = 'all', subset = to_return.columns[0:95])
+    to_return.reset_index(inplace = True, drop = True)
     to_return['Time (s)'] = to_return.index * time_increment
 
     if not quiet:
@@ -184,3 +185,11 @@ if __name__ == '__main__':
         print('Saving csv')
 
     plate_data.to_csv(outfile, index = False)
+
+    if not quiet:
+        print('Making plots')
+    subprocess.run(['Rscript', '--quiet', os.path.join(script_path, 'make_plot.R'), outfile])
+    if os.path.isfile(os.path.join(outdir, 'Rplots.pdf')) :
+        os.remove(os.path.join(outdir, 'Rplots.pdf'))
+    if not quiet:
+        print('Done.')
