@@ -9,7 +9,7 @@ data <- read_csv(args[1]) %>%
   gather(key = 'Well', value = 'Fluorescence', -Sample, -`Time (s)`) %>%
   drop_na() %>%
   group_by(Well) %>%
-  mutate(Normalized_Fluorescence = (Fluorescence - min(Fluorescence))/ (mean(Fluorescence[Sample == 'ACMA']) - min(Fluorescence)))
+  mutate(Normalized_Fluorescence = (Fluorescence - mean(Fluorescence[Sample == 'Na_Iono']))/ (mean(Fluorescence[Sample == 'ACMA']) - mean(Fluorescence[Sample == 'Na_Iono'])))
 
 data %>%
   ggplot(aes(x = `Time (s)`, y = Normalized_Fluorescence, color = Well)) +
@@ -18,5 +18,5 @@ data %>%
   scale_color_viridis_d() +
   labs(x = 'Time (s)', y = 'Normalized Fluorescence') +
   scale_y_continuous(breaks = seq(0, 1, by = 0.2)) +
-  scale_x_continuous(breaks = seq(0, 1000, by = 100))
+  scale_x_continuous(breaks = seq(0, 3000, by = 100))
 ggsave(filename = file.path(out.dir, paste('plot_', no.ext, '.pdf', sep = '')), width = 6, height = 4)
