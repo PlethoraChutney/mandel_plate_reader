@@ -21,10 +21,6 @@ def get_file_list(directory, quiet = False):
 
     return file_list
 
-def get_seconds(time_str):
-    m, s = time_str.split(':')
-    return int(m)*60 + int(s)
-
 def collect_data(file, time_increment, quiet):
     if not quiet:
         print(f'Reading plate file {file}')
@@ -33,7 +29,6 @@ def collect_data(file, time_increment, quiet):
 
     plate = 0
     time_index = 0
-    sec_per_plate = {0:0, 1:125, 2:425}
     sample_per_plate = {0:'ACMA', 1:'CCCP', 2:'Na_Iono'}
 
     if not quiet:
@@ -41,6 +36,16 @@ def collect_data(file, time_increment, quiet):
 
     rows_list = []
     for row in range(data.shape[0]):
+        # the plate reader writes the time only once each time it reads the plate
+        # it also writes a new header column each time we switch to a new plate,
+        # which we do after adding a reagent
+        #
+        # We'll look for a header to indicate that the next plate has started,
+        # and we'll (painstakingly) get the fluorescence for each well by finding
+        # a time expression and moving around from there.
+        #
+        # This whole process is the slow part of the script, even using the list-
+        # of-dictionaries method, which is apparently the fastest.
         if str(data.loc[row]['Time(hh:mm:ss)']) == 'Time(hh:mm:ss)':
             plate = plate + 1
         if re.match(time_regex, str(data.loc[row]['Time(hh:mm:ss)'])) is not None:
@@ -147,6 +152,14 @@ def collect_data(file, time_increment, quiet):
             rows_list.append(single_row)
 
     to_return = pd.DataFrame(rows_list)
+    # Since the plate reader prints a read even for times that it didn't read the
+    # plate (!), we need a way to only keep records we have and correctly track
+    # the total time.
+    #
+    # Here we drop rows where all cells are NA (i.e., plates that weren't read;
+    # we also ignore the column with the Sample in it, since that's
+    # filled in by the script in all rows), then multiply the row number by the time
+    #interval (provided by the user in arguments) to get the total time.
     to_return.dropna(inplace = True, how = 'all', subset = to_return.columns[0:95])
     to_return.reset_index(inplace = True, drop = True)
     to_return['Time (s)'] = to_return.index * time_increment
