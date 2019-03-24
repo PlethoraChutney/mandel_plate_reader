@@ -8,14 +8,23 @@ out.dir <- dirname(args[1])
 data <- read_csv(args[1]) %>%
   gather(key = 'Well', value = 'Fluorescence', -Sample, -`Time (s)`) %>%
   drop_na() %>%
+  mutate(Fluorescence = as.double(Fluorescence), Phase = Sample) %>% 
   group_by(Well) %>%
-  mutate(Normalized_Fluorescence = (Fluorescence - mean(Fluorescence[Sample == 'Na_Iono']))/ (mean(Fluorescence[Sample == 'ACMA']) - mean(Fluorescence[Sample == 'Na_Iono'])))
+  mutate(Normalized_Fluorescence = (Fluorescence - mean(Fluorescence[Sample == 'Na_Iono']))/ (mean(Fluorescence[Sample == 'ACMA']) - mean(Fluorescence[Sample == 'Na_Iono']))) %>% 
+  ungroup()
+
+sample_data <- data %>% 
+  select(Phase, `Time (s)`) %>% 
+  group_by(Phase) %>% 
+  summarise(min = min(`Time (s)`), max = max(`Time (s)`))
 
 data %>%
-  ggplot(aes(x = `Time (s)`, y = Normalized_Fluorescence, color = Well)) +
-  geom_line() +
+  ggplot() +
+  geom_line(aes(x = `Time (s)`, y = Normalized_Fluorescence, color = Well)) +
+  geom_rect(data = sample_data, ymin = -Inf, ymax = Inf, aes(xmin = min, xmax = max, fill = Phase), alpha = 0.05) +
   theme_light() +
   scale_color_viridis_d() +
+  scale_fill_viridis_d() +
   labs(x = 'Time (s)', y = 'Normalized Fluorescence') +
   scale_y_continuous(breaks = seq(0, 1, by = 0.2)) +
   scale_x_continuous(breaks = seq(0, 3000, by = 100))
