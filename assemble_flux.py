@@ -172,7 +172,7 @@ def collect_data(file, time_increment, quiet):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'A script to assemble kinetic fluorescence readings from an old plate reader')
     parser.add_argument('-d', '--directory', default = script_path, help = 'What directory is your file in. Default is same as this script.')
-    parser.add_argument('-o', '--outfile', default = os.path.join(script_path, 'assembled_flux.csv'), help = 'Full path to saved csv. Default \'assembled_flux.csv\' in script dir')
+    parser.add_argument('-o', '--outfile', default = None, help = 'Full path to saved csv. Default \'plates.csv\' in target dir')
     parser.add_argument('-i', '--interval', default = 5, type = int, help = 'Time interval between reads in seconds. Default 5')
     parser.add_argument('-q', '--quiet', default = False, action = 'store_true', help = 'Squelch messages. Default False')
 
@@ -180,12 +180,16 @@ if __name__ == '__main__':
         parser.print_help(sys.stderr)
         sys.exit(0)
     args = parser.parse_args()
-
+    outfile = args.outfile
     dir = os.path.normpath(args.directory)
-    outfile = os.path.normpath(args.outfile)
-    outdir = os.path.dirname(outfile)
     time_increment = args.interval
     quiet = args.quiet
+
+    if outfile is None:
+        outfile = os.path.join(os.path.dirname(args.directory), 'plates.csv')
+    else:
+        outfile = os.path.normpath(args.outfile)
+    outdir = os.path.dirname(outfile)
 
     if os.path.isfile(outfile):
         print(f'I don\'t want to overwrite the file {outfile}. Please move or delete it first.')
