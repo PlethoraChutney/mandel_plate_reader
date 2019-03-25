@@ -21,6 +21,14 @@ def get_file_list(directory, quiet = False):
 
     return file_list
 
+def generate_plates(plate_list):
+    plate_dict = {}
+    i = 0
+    for plate in plate_list:
+        plate_dict[i] = plate
+        i += 1
+    return plate_dict
+
 def collect_data(file, time_increment, quiet):
     if not quiet:
         print(f'Reading plate file {file}')
@@ -29,7 +37,6 @@ def collect_data(file, time_increment, quiet):
 
     plate = 0
     time_index = 0
-    sample_per_plate = {0:'ACMA', 1:'CCCP', 2:'Na_Iono'}
 
     if not quiet:
         print('Assembling plate reads')
@@ -175,16 +182,16 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--outfile', default = None, help = 'Full path to saved csv. Default \'plates.csv\' in target dir')
     parser.add_argument('-i', '--interval', default = 5, type = int, help = 'Time interval between reads in seconds. Default 5')
     parser.add_argument('-q', '--quiet', default = False, action = 'store_true', help = 'Squelch messages. Default False')
+    parser.add_argument('-p', '--plates', nargs = '+', default = ['ACMA', 'CCCP', 'Na_Iono'], help = 'List of reagents used separated by spaces. Default is for Na flux')
 
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(0)
     args = parser.parse_args()
     outfile = args.outfile
     dir = os.path.normpath(args.directory)
     time_increment = args.interval
     quiet = args.quiet
+    plates = args.plates
 
+    # Get directories and filenames in order
     if outfile is None:
         outfile = os.path.join(os.path.dirname(args.directory), 'plates.csv')
     else:
@@ -195,6 +202,10 @@ if __name__ == '__main__':
         print(f'I don\'t want to overwrite the file {outfile}. Please move or delete it first.')
         sys.exit()
 
+    # Figure out what plates we're using
+    sample_per_plate = generate_plates(plates)
+
+    # Get files and save plots and data
     file_list = get_file_list(dir, quiet)
     plate_data = collect_data(file_list[0], time_increment, quiet)
 

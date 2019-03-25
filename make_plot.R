@@ -8,9 +8,14 @@ out.dir <- dirname(args[1])
 data <- read_csv(args[1]) %>%
   gather(key = 'Well', value = 'Fluorescence', -Sample, -`Time (s)`) %>%
   drop_na() %>%
-  mutate(Fluorescence = as.double(Fluorescence), Phase = Sample) %>% 
+  mutate(Fluorescence = as.double(Fluorescence), Phase = factor(data$Sample, levels = unique(data$Sample)))
+
+first.phase <- levels(data$Phase)[1]
+last.phase <- levels(data$Phase)[length(levels(data$Phase))]
+
+data <- data %>% 
   group_by(Well) %>%
-  mutate(Normalized_Fluorescence = (Fluorescence - mean(Fluorescence[Sample == 'Na_Iono']))/ (mean(Fluorescence[Sample == 'ACMA']) - mean(Fluorescence[Sample == 'Na_Iono']))) %>% 
+  mutate(Normalized_Fluorescence = (Fluorescence - mean(Fluorescence[Phase == last.phase]))/ (mean(Fluorescence[Phase == first.phase]) - mean(Fluorescence[Sample == last.phase]))) %>% 
   ungroup()
 
 sample_data <- data %>% 
