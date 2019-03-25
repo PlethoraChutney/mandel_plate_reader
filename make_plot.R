@@ -8,7 +8,7 @@ out.dir <- dirname(args[1])
 data <- read_csv(args[1]) %>%
   gather(key = 'Well', value = 'Fluorescence', -Sample, -`Time (s)`) %>%
   drop_na() %>%
-  mutate(Fluorescence = as.double(Fluorescence), Phase = factor(data$Sample, levels = unique(data$Sample)))
+  mutate(Fluorescence = as.double(Fluorescence), Phase = factor(.$Sample, levels = unique(.$Sample)))
 
 first.phase <- levels(data$Phase)[1]
 last.phase <- levels(data$Phase)[length(levels(data$Phase))]

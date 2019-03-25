@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import numpy as np
 import pandas as pd
 import sys
@@ -28,6 +29,15 @@ def generate_plates(plate_list):
         plate_dict[i] = plate
         i += 1
     return plate_dict
+
+def rename_wells(well_list, df):
+    rename_map = {}
+    i = 0
+    while i < len(well_list):
+        rename_map[well_list[i]] = well_list[i+1]
+        i += 2
+    df.rename(columns = rename_map, inplace = True)
+
 
 def collect_data(file, time_increment, quiet):
     if not quiet:
@@ -183,6 +193,7 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--interval', default = 5, type = int, help = 'Time interval between reads in seconds. Default 5')
     parser.add_argument('-q', '--quiet', default = False, action = 'store_true', help = 'Squelch messages. Default False')
     parser.add_argument('-p', '--plates', nargs = '+', default = ['ACMA', 'CCCP', 'Na_Iono'], help = 'List of reagents used separated by spaces. Default is for Na flux')
+    parser.add_argument('-s', '--samples', nargs = '+', help = 'List of wells and samples, separated by spaces')
 
     args = parser.parse_args()
     outfile = args.outfile
@@ -190,6 +201,7 @@ if __name__ == '__main__':
     time_increment = args.interval
     quiet = args.quiet
     plates = args.plates
+    samples = args.samples
 
     # Get directories and filenames in order
     if outfile is None:
@@ -208,6 +220,8 @@ if __name__ == '__main__':
     # Get files and save plots and data
     file_list = get_file_list(dir, quiet)
     plate_data = collect_data(file_list[0], time_increment, quiet)
+    if samples is not None:
+        rename_wells(samples, plate_data)
 
     if not quiet:
         print('Saving csv')
