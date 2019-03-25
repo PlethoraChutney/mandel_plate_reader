@@ -193,7 +193,7 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--interval', default = 5, type = int, help = 'Time interval between reads in seconds. Default 5')
     parser.add_argument('-q', '--quiet', default = False, action = 'store_true', help = 'Squelch messages. Default False')
     parser.add_argument('-p', '--plates', nargs = '+', default = ['ACMA', 'CCCP', 'Na_Iono'], help = 'List of reagents used separated by spaces. Default is for Na flux')
-    parser.add_argument('-s', '--samples', nargs = '+', help = 'List of wells and samples, separated by spaces')
+    parser.add_argument('-s', '--samples', nargs = '+', help = 'List of wells and samples, separated by spaces. Samples with the same name are averaged. Do NOT use underscore in sample names.')
 
     args = parser.parse_args()
     outfile = args.outfile
@@ -230,7 +230,7 @@ if __name__ == '__main__':
 
     if not quiet:
         print('Making plots')
-    subprocess.run(['Rscript', '--quiet', os.path.join(script_path, 'make_plot.R'), outfile])
+    subprocess.run(['Rscript', '--quiet', os.path.join(script_path, 'make_plot.R'), outfile], stderr = open(os.devnull, 'wb'))
     if os.path.isfile(os.path.join(outdir, 'Rplots.pdf')) :
         os.remove(os.path.join(outdir, 'Rplots.pdf'))
     if not quiet:
