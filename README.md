@@ -22,7 +22,7 @@ before it's publication ready, but it can go in your notebook.
 If you're not averaging any wells, you can use the -s flag to give a list of wells and samples to
 rename them so you don't have to do any R work yourself. For instance, `assemble_flux.py -s A01 sample1
 A02 "Sample 2"` will rename the A01 column to `sample1` and the A02 column to `Sample 2`. Samples
-with the same name will be averaged. **Do not use underscore in these sample names**
+with the same name will be averaged. **Underscores are converted to dashes (_ --> -)**
 
 If you're not performing a sodium flux assay (3 plates; ACMA, CCCP, Na ionophore) you can specify an
 arbitrary number of plates with the -p flag. For instance, `assemble_flux.py -p ACMA CCCP Na_Iono` will

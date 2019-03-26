@@ -9,7 +9,7 @@ import re
 
 skip_rows = 2
 time_regex = re.compile('[0-9]{1,2}:[0-9]{2}')
-script_path = dir_path = os.path.dirname(os.path.realpath(__file__))
+script_path = os.path.dirname(os.path.realpath(__file__))
 
 def get_file_list(directory, quiet = False):
     file_list = []
@@ -34,7 +34,7 @@ def rename_wells(well_list, df):
     rename_map = {}
     i = 0
     while i < len(well_list):
-        rename_map[well_list[i]] = well_list[i+1]
+        rename_map[well_list[i]] = well_list[i+1].replace('_', '-')
         i += 2
     df.rename(columns = rename_map, inplace = True)
 
@@ -188,12 +188,12 @@ def collect_data(file, time_increment, quiet):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'A script to assemble kinetic fluorescence readings from an old plate reader')
-    parser.add_argument('-d', '--directory', default = script_path, help = 'What directory is your file in. Default is same as this script.')
+    parser.add_argument('directory', help = 'What directory is your file in.')
     parser.add_argument('-o', '--outfile', default = None, help = 'Full path to saved csv. Default \'plates.csv\' in target dir')
     parser.add_argument('-i', '--interval', default = 5, type = int, help = 'Time interval between reads in seconds. Default 5')
-    parser.add_argument('-q', '--quiet', default = False, action = 'store_true', help = 'Squelch messages. Default False')
     parser.add_argument('-p', '--plates', nargs = '+', default = ['ACMA', 'CCCP', 'Na_Iono'], help = 'List of reagents used separated by spaces. Default is for Na flux')
-    parser.add_argument('-s', '--samples', nargs = '+', help = 'List of wells and samples, separated by spaces. Samples with the same name are averaged. Do NOT use underscore in sample names.')
+    parser.add_argument('-s', '--samples', nargs = '+', help = 'List of wells and samples, separated by spaces. Samples with the same name are averaged. _ becomes -')
+    parser.add_argument('-q', '--quiet', default = False, action = 'store_true', help = 'Squelch messages. Default False')
 
     args = parser.parse_args()
     outfile = args.outfile
@@ -211,8 +211,9 @@ if __name__ == '__main__':
     outdir = os.path.dirname(outfile)
 
     if os.path.isfile(outfile):
-        print(f'I don\'t want to overwrite the file {outfile}. Please move or delete it first.')
-        sys.exit()
+        if not quiet:
+            print(f'I don\'t want to overwrite the file {os.path.abspath(outfile)}. Please move or delete it first.')
+        sys.exit(1)
 
     # Figure out what plates we're using
     sample_per_plate = generate_plates(plates)
@@ -231,7 +232,7 @@ if __name__ == '__main__':
     if not quiet:
         print('Making plots')
     subprocess.run(['Rscript', '--quiet', os.path.join(script_path, 'make_plot.R'), outfile], stderr = open(os.devnull, 'wb'))
-    if os.path.isfile(os.path.join(outdir, 'Rplots.pdf')) :
-        os.remove(os.path.join(outdir, 'Rplots.pdf'))
+    if os.path.isfile(os.path.join(script_path, 'Rplots.pdf')) :
+        os.remove(os.path.join(script_path, 'Rplots.pdf'))
     if not quiet:
         print('Done.')
