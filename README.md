@@ -19,8 +19,8 @@ The R script drops any entirely empty columns, then plots each well in a standar
 Then each well gets a line tracing the points and that plot is saved. It'll likely take some changing
 before it's publication ready, but it can go in your notebook.
 
-If you're not averaging any wells, you can use the -s flag to give a list of wells and samples to
-rename them so you don't have to do any R work yourself. For instance, `assemble_flux.py -s A01 sample1
+You can use the -s flag to give a list of wells and samples to rename and average them so you
+don't have to do any R work yourself. For instance, `assemble_flux.py -s A01 sample1
 A02 "Sample 2"` will rename the A01 column to `sample1` and the A02 column to `Sample 2`. Samples
 with the same name will be averaged. **Underscores are converted to dashes (_ --> -)**
 
