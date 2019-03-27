@@ -206,7 +206,7 @@ def collect_data(file, time_increment, quiet):
     # Here we drop rows where all cells are NA (i.e., plates that weren't read;
     # we also ignore the column with the Sample in it, since that's
     # filled in by the script in all rows), then multiply the row number by the time
-    #interval (provided by the user in arguments) to get the total time.
+    # interval (provided by the user in arguments) to get the total time.
     to_return.dropna(inplace = True, how = 'all', subset = to_return.columns[0:95])
     to_return.reset_index(inplace = True, drop = True)
     to_return['Time (s)'] = to_return.index * time_increment
@@ -225,6 +225,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--plates', nargs = '+', default = ['ACMA', 'CCCP', 'Na_Iono'], help = 'List of reagents used separated by spaces. Default is for Na flux')
     renamers.add_argument('-s', '--samples', nargs = '+', help = 'List of wells and samples, separated by spaces. Samples with the same name are averaged. _ becomes -')
     renamers.add_argument('-r', '--rangerename', nargs = '+', help = 'Rename several wells at once. Give upper left and lower right well, then samples names (left to right, top to bottom)')
+    parser.add_argument('--deletecol', nargs = '+', help = 'Ignore a column or columns')
     parser.add_argument('-q', '--quiet', default = False, action = 'store_true', help = 'Squelch messages. Default False')
 
     args = parser.parse_args()
@@ -235,6 +236,7 @@ if __name__ == '__main__':
     plates = args.plates
     samples = args.samples
     range_rename = args.rangerename
+    to_delete = args.deletecol
 
     # Get directories and filenames in order
     if outfile is None:
@@ -254,6 +256,9 @@ if __name__ == '__main__':
     # Get files and save plots and data
     file_list = get_file_list(dir, quiet)
     plate_data = collect_data(file_list[0], time_increment, quiet)
+
+    if to_delete is not None:
+        plate_data.drop(to_delete, axis = 1, inplace = True)
 
     if samples is not None:
         rename_wells(samples, plate_data)
