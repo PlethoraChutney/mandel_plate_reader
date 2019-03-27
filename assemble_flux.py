@@ -42,8 +42,9 @@ def wells_by_range(well_limits, samples, df, quiet):
     row_limits = [well_limits[0][0].upper(), well_limits[1][0].upper()]
     column_limits = [int(well_limits[0][1:3]), int(well_limits[1][1:3])]
     expected_num_samples = ((ord(row_limits[1]) - ord(row_limits[0]) + 1) * (column_limits[1] - column_limits[0] + 1))
-    if (expected_num_samples != len(samples) and not quiet):
-        print(f'Warning: expected {expected_num_samples} sample names and got {len(samples)}. Not renaming.')
+    if (expected_num_samples != len(samples)):
+        if not quiet:
+            print(f'Warning: expected {expected_num_samples} sample names and got {len(samples)}. Not renaming.')
         return None
 
     rows_list = [chr(x) for x in range(ord(row_limits[0]), ord(row_limits[1]) + 1)]
