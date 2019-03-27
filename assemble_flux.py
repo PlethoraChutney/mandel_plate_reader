@@ -34,10 +34,39 @@ def rename_wells(well_list, df):
     rename_map = {}
     i = 0
     while i < len(well_list):
-        rename_map[well_list[i]] = well_list[i+1].replace('_', '-')
+        rename_map[well_list[i].upper()] = well_list[i+1].replace('_', '-')
         i += 2
     df.rename(columns = rename_map, inplace = True)
 
+def wells_by_range(well_limits, samples, df, quiet):
+    row_limits = [well_limits[0][0].upper(), well_limits[1][0].upper()]
+    column_limits = [int(well_limits[0][1:3]), int(well_limits[1][1:3])]
+    expected_num_samples = ((ord(row_limits[1]) - ord(row_limits[0]) + 1) * (column_limits[1] - column_limits[0] + 1))
+    if (expected_num_samples != len(samples) and not quiet):
+        print(f'Warning: expected {expected_num_samples} sample names and got {len(samples)}. Not renaming.')
+        return None
+
+    rows_list = [chr(x) for x in range(ord(row_limits[0]), ord(row_limits[1]) + 1)]
+    cols_ints = range(int(column_limits[0]), int(column_limits[1]) + 1)
+    cols_list = []
+    for col in cols_ints:
+        if col < 10:
+            cols_list.append('0' + str(col))
+        else:
+            cols_list.append(str(col))
+
+    sample_indexer = 0
+    rename_map = {}
+    for row in rows_list:
+        for col in cols_list:
+            well = row + col
+            sample = samples[sample_indexer]
+            rename_map[well] = sample.replace('_', '-')
+            sample_indexer += 1
+
+    df.rename(columns = rename_map, inplace = True)
+    if not quiet:
+        print(f'Renaming columns: {rename_map}')
 
 def collect_data(file, time_increment, quiet):
     if not quiet:
@@ -188,11 +217,13 @@ def collect_data(file, time_increment, quiet):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'A script to assemble kinetic fluorescence readings from an old plate reader')
+    renamers = parser.add_mutually_exclusive_group()
     parser.add_argument('directory', help = 'What directory is your file in.')
     parser.add_argument('-o', '--outfile', default = None, help = 'Full path to saved csv. Default \'plates.csv\' in target dir')
     parser.add_argument('-i', '--interval', default = 5, type = int, help = 'Time interval between reads in seconds. Default 5')
     parser.add_argument('-p', '--plates', nargs = '+', default = ['ACMA', 'CCCP', 'Na_Iono'], help = 'List of reagents used separated by spaces. Default is for Na flux')
-    parser.add_argument('-s', '--samples', nargs = '+', help = 'List of wells and samples, separated by spaces. Samples with the same name are averaged. _ becomes -')
+    renamers.add_argument('-s', '--samples', nargs = '+', help = 'List of wells and samples, separated by spaces. Samples with the same name are averaged. _ becomes -')
+    renamers.add_argument('-r', '--rangerename', nargs = '+', help = 'Rename several wells at once. Give upper left and lower right well, then samples names (left to right, top to bottom)')
     parser.add_argument('-q', '--quiet', default = False, action = 'store_true', help = 'Squelch messages. Default False')
 
     args = parser.parse_args()
@@ -202,6 +233,7 @@ if __name__ == '__main__':
     quiet = args.quiet
     plates = args.plates
     samples = args.samples
+    range_rename = args.rangerename
 
     # Get directories and filenames in order
     if outfile is None:
@@ -221,8 +253,12 @@ if __name__ == '__main__':
     # Get files and save plots and data
     file_list = get_file_list(dir, quiet)
     plate_data = collect_data(file_list[0], time_increment, quiet)
+
     if samples is not None:
         rename_wells(samples, plate_data)
+
+    if range_rename is not None:
+        wells_by_range(range_rename[0:2], range_rename[2:len(range_rename)+1], plate_data, quiet)
 
     if not quiet:
         print('Saving csv')
