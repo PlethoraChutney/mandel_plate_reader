@@ -15,7 +15,7 @@ set it how you like) and a column for each well (A1 -- H12), most of which will 
 Then it runs the R script.
 
 The R script drops any entirely empty columns, then plots each well in a standard format. First, the
-first plate samples are averaged and that mean is set to 1.0. Next, the average final plate fluorescence is set to 0.0.
+first plate samples are averaged and that mean is set to 1.0.
 Then each well gets a line tracing the points and that plot is saved. It'll likely take some changing
 before it's publication ready, but it can go in your notebook.
 

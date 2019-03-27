@@ -19,7 +19,7 @@ last.phase <- levels(data$Phase)[length(levels(data$Phase))]
 
 data <- data %>% 
   group_by(Well) %>%
-  mutate(Normalized_Fluorescence = (Fluorescence - mean(Fluorescence[Phase == last.phase]))/ (mean(Fluorescence[Phase == first.phase]) - mean(Fluorescence[Phase == last.phase]))) %>% 
+  mutate(Normalized_Fluorescence = (Fluorescence)/ (mean(Fluorescence[Phase == first.phase]))) %>% 
   ungroup()
 
 sample_data <- data %>% 
