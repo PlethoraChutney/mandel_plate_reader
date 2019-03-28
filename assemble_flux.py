@@ -236,7 +236,7 @@ if __name__ == '__main__':
     outdir = os.path.dirname(outfile)
 
     if os.path.isfile(outfile):
-        if input(f'Are you sure you want to overwrite the file {os.path.abspath(outfile)}?\n[Y]es / [N]o\n') != 'Y':
+        if input(f'Are you sure you want to overwrite the file {os.path.abspath(outfile)}?\n[Y]es / [N]o\n').upper() != 'Y':
             sys.exit(0)
 
     # Figure out what plates we're using
