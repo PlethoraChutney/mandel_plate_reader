@@ -8,33 +8,34 @@ out.dir <- dirname(args[1])
 data <- read_csv(args[1], col_types = cols()) %>%
   gather(key = 'Well', value = 'Fluorescence', -Sample, -`Time (s)`) %>%
   drop_na() %>%
-  mutate(Fluorescence = as.double(Fluorescence), Phase = factor(.$Sample, levels = unique(.$Sample))) %>% 
-  separate(Well, into = c('Well', NA), sep = '_') %>% 
-  group_by(Well, `Time (s)`, Phase) %>% 
-  summarize(Fluorescence = mean(Fluorescence)) %>% 
+  mutate(Fluorescence = as.double(Fluorescence), Phase = factor(.$Sample, levels = unique(.$Sample))) %>%
+  separate(Well, into = c('Well', NA), sep = '_') %>%
+  group_by(Well, `Time (s)`, Phase) %>%
+  summarize(Fluorescence = mean(Fluorescence)) %>%
   ungroup()
 
 first.phase <- levels(data$Phase)[1]
 last.phase <- levels(data$Phase)[length(levels(data$Phase))]
 
-data <- data %>% 
+data <- data %>%
   group_by(Well) %>%
-  mutate(Normalized_Fluorescence = (Fluorescence)/ (mean(Fluorescence[Phase == first.phase]))) %>% 
+  mutate(Normalized_Fluorescence = (Fluorescence)/ (mean(Fluorescence[Phase == first.phase]))) %>%
   ungroup()
 
-sample_data <- data %>% 
-  select(Phase, `Time (s)`) %>% 
-  group_by(Phase) %>% 
+sample_data <- data %>%
+  select(Phase, `Time (s)`) %>%
+  group_by(Phase) %>%
   summarise(min = min(`Time (s)`), max = max(`Time (s)`))
 
 data %>%
   ggplot() +
-  geom_line(aes(x = `Time (s)`, y = Normalized_Fluorescence, color = Well)) +
+  geom_line(aes(x = `Time (s)`, y = Normalized_Fluorescence, color = Well), size = 1) +
   geom_rect(data = sample_data, ymin = -Inf, ymax = Inf, aes(xmin = min, xmax = max, fill = Phase), alpha = 0.05) +
   theme_light() +
   scale_color_viridis_d() +
   scale_fill_viridis_d() +
   labs(x = 'Time (s)', y = 'Normalized Fluorescence') +
   scale_y_continuous(breaks = seq(-100, 100, by = 0.2)) +
-  scale_x_continuous(breaks = seq(0, 3000, by = 100))
+  scale_x_continuous(breaks = seq(0, 3000, by = 100)) +
+  expand_limits(y = c(0,1))
 ggsave(filename = file.path(out.dir, paste('plot_', no.ext, '.pdf', sep = '')), width = 6, height = 4)
