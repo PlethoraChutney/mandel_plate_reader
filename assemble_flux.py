@@ -11,17 +11,6 @@ skip_rows = 2
 time_regex = re.compile('[0-9]{1,2}:[0-9]{2}')
 script_path = os.path.dirname(os.path.realpath(__file__))
 
-def get_file_list(directory, quiet = False):
-    file_list = []
-    for file in os.listdir(directory):
-        if file.endswith(".txt"):
-            file_list.append(os.path.join(directory, file))
-
-    if not quiet:
-        print(f'Found {len(file_list)} files')
-
-    return file_list
-
 def generate_plates(plate_list):
     plate_dict = {}
     i = 0
@@ -219,7 +208,7 @@ def collect_data(file, time_increment, quiet):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'A script to assemble kinetic fluorescence readings from an old plate reader')
     renamers = parser.add_mutually_exclusive_group()
-    parser.add_argument('directory', help = 'What directory is your file in.')
+    parser.add_argument('file', help = 'Path to your plate read .txt file')
     parser.add_argument('-o', '--outfile', default = None, help = 'Full path to saved csv. Default \'plates.csv\' in target dir')
     parser.add_argument('-i', '--interval', default = 5, type = int, help = 'Time interval between reads in seconds. Default 5')
     parser.add_argument('-p', '--plates', nargs = '+', default = ['ACMA', 'CCCP', 'Na_Iono'], help = 'List of reagents used separated by spaces. Default is for Na flux')
@@ -230,7 +219,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     outfile = args.outfile
-    dir = os.path.normpath(args.directory)
+    file = os.path.normpath(args.file)
+    dir = os.path.dirname(file)
     time_increment = args.interval
     quiet = args.quiet
     plates = args.plates
@@ -240,22 +230,20 @@ if __name__ == '__main__':
 
     # Get directories and filenames in order
     if outfile is None:
-        outfile = os.path.join(os.path.dirname(args.directory), 'plates.csv')
+        outfile = os.path.join(dir, 'plates.csv')
     else:
         outfile = os.path.normpath(args.outfile)
     outdir = os.path.dirname(outfile)
 
     if os.path.isfile(outfile):
-        if not quiet:
-            print(f'I don\'t want to overwrite the file {os.path.abspath(outfile)}. Please move or delete it first.')
-        sys.exit(1)
+        if input(f'Are you sure you want to overwrite the file {os.path.abspath(outfile)}?\n[Y]es / [N]o\n') != 'Y':
+            sys.exit(0)
 
     # Figure out what plates we're using
     sample_per_plate = generate_plates(plates)
 
     # Get files and save plots and data
-    file_list = get_file_list(dir, quiet)
-    plate_data = collect_data(file_list[0], time_increment, quiet)
+    plate_data = collect_data(file, time_increment, quiet)
 
     if to_delete is not None:
         plate_data.drop(to_delete, axis = 1, inplace = True)
