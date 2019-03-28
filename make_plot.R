@@ -5,6 +5,8 @@ args = commandArgs(trailingOnly = TRUE)
 no.ext <- str_sub(basename(args[1]), end = -5)
 out.dir <- dirname(args[1])
 
+old.warn <- getOption('warn')
+options(warn = -1)
 data <- read_csv(args[1], col_types = cols()) %>%
   gather(key = 'Well', value = 'Fluorescence', -Sample, -`Time (s)`) %>%
   drop_na() %>%
@@ -13,6 +15,7 @@ data <- read_csv(args[1], col_types = cols()) %>%
   group_by(Well, `Time (s)`, Phase) %>%
   summarize(Fluorescence = mean(Fluorescence)) %>%
   ungroup()
+options(warn = old.warn)
 
 first.phase <- levels(data$Phase)[1]
 last.phase <- levels(data$Phase)[length(levels(data$Phase))]

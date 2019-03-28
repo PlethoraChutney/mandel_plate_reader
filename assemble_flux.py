@@ -261,7 +261,7 @@ if __name__ == '__main__':
 
     if not quiet:
         print('Making plots')
-    subprocess.run(['Rscript', '--quiet', os.path.join(script_path, 'make_plot.R'), outfile], stderr = open(os.devnull, 'wb'))
+    subprocess.run(['Rscript', '--quiet', os.path.join(script_path, 'make_plot.R'), outfile])
     if os.path.isfile(os.path.join(script_path, 'Rplots.pdf')) :
         os.remove(os.path.join(script_path, 'Rplots.pdf'))
     if not quiet:
