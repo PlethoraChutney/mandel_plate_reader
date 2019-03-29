@@ -23,6 +23,7 @@ last.phase <- levels(data$Phase)[length(levels(data$Phase))]
 data <- data %>%
   group_by(Well) %>%
   mutate(Normalized_Fluorescence = (Fluorescence)/ (mean(Fluorescence[Phase == first.phase]))) %>%
+  gather(key = 'Signal', value = 'Value', Fluorescence, Normalized_Fluorescence) %>% 
   ungroup()
 
 sample_data <- data %>%
@@ -32,13 +33,13 @@ sample_data <- data %>%
 
 data %>%
   ggplot() +
-  geom_line(aes(x = `Time (s)`, y = Normalized_Fluorescence, color = Well), size = 1) +
+  geom_line(aes(x = `Time (s)`, y = Value, color = Well), size = 1) +
   geom_rect(data = sample_data, ymin = -Inf, ymax = Inf, aes(xmin = min, xmax = max, fill = Phase), alpha = 0.05) +
   theme_light() +
   scale_color_viridis_d() +
   scale_fill_viridis_d() +
-  labs(x = 'Time (s)', y = 'Normalized Fluorescence') +
-  scale_y_continuous(breaks = seq(-100, 100, by = 0.2)) +
+  facet_grid(Signal ~ ., scales = 'free') +
+  labs(x = 'Time (s)', y = '') +
   scale_x_continuous(breaks = seq(0, 3000, by = 100)) +
   expand_limits(y = c(0,1))
-ggsave(filename = file.path(out.dir, paste('plot_', no.ext, '.pdf', sep = '')), width = 6, height = 4)
+ggsave(filename = file.path(out.dir, paste('plot_', no.ext, '.pdf', sep = '')), width = 6, height = 6)
