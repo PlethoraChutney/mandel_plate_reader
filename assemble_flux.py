@@ -7,11 +7,16 @@ import argparse
 import subprocess
 import re
 
+# 1 Hardcoding ----------------------------------------------------------------
+
 skip_rows = 2
 time_regex = re.compile('[0-9]{1,2}:[0-9]{2}')
 script_path = os.path.dirname(os.path.realpath(__file__))
 
+# 2 Helper functions ----------------------------------------------------------
+
 def generate_plates(plate_list):
+
     plate_dict = {}
     i = 0
     for plate in plate_list:
@@ -20,6 +25,7 @@ def generate_plates(plate_list):
     return plate_dict
 
 def rename_wells(well_list, df):
+
     rename_map = {}
     i = 0
     while i < len(well_list):
@@ -204,7 +210,7 @@ def collect_data(file, time_increment, quiet):
         print('Done reading file')
 
     return to_return
-
+# 3 Main ----------------------------------------------------------------------
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'A script to assemble kinetic fluorescence readings from an old plate reader')
     renamers = parser.add_mutually_exclusive_group()

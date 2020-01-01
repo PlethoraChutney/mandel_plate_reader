@@ -1,21 +1,29 @@
 suppressMessages(library(tidyverse))
 library(ggplot2)
 
+# 1 Import ----------------------------------------------------------------
+
 args = commandArgs(trailingOnly = TRUE)
 no.ext <- str_sub(basename(args[1]), end = -5)
 out.dir <- dirname(args[1])
+
+# R warns about filling NAs in a bunch of rows without this. Since it's something
+# that always happens we can suppress warnings so people don't freak out.
 
 old.warn <- getOption('warn')
 options(warn = -1)
 data <- read_csv(args[1], col_types = cols()) %>%
   gather(key = 'Well', value = 'Fluorescence', -Sample, -`Time (s)`) %>%
   drop_na() %>%
-  mutate(Fluorescence = as.double(Fluorescence), Phase = factor(.$Sample, levels = unique(.$Sample))) %>%
+  mutate(Fluorescence = as.double(Fluorescence), 
+         Phase = factor(.$Sample, levels = unique(.$Sample))) %>%
   separate(Well, into = c('Well', NA), sep = '_') %>%
   group_by(Well, `Time (s)`, Phase) %>%
   summarize(Fluorescence = mean(Fluorescence)) %>%
   ungroup()
 options(warn = old.warn)
+
+# * 1.1 Normalization -----------------------------------------------------
 
 first.phase <- levels(data$Phase)[1]
 last.phase <- levels(data$Phase)[length(levels(data$Phase))]
@@ -26,10 +34,13 @@ data <- data %>%
   gather(key = 'Signal', value = 'Value', Fluorescence, Normalized_Fluorescence) %>% 
   ungroup()
 
+# sample_data is used to draw the boxes representing which points belong to which phase
 sample_data <- data %>%
   select(Phase, `Time (s)`) %>%
   group_by(Phase) %>%
   summarise(min = min(`Time (s)`), max = max(`Time (s)`))
+
+# 2 Plot ------------------------------------------------------------------
 
 data %>%
   ggplot() +
