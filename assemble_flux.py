@@ -6,6 +6,8 @@ import os
 import argparse
 import subprocess
 import re
+import string
+import shutil
 
 # 1 Hardcoding ----------------------------------------------------------------
 
@@ -81,116 +83,18 @@ def collect_data(file, time_increment, quiet):
         # The plate reader writes the time only once each time it reads the plate
         # it also writes a new header column each time we switch to a new plate,
         # which we do after adding a reagent
-        #
-        # We'll look for a header to indicate that the next plate has started,
-        # and we'll (painstakingly) get the fluorescence for each well by finding
-        # a time expression and moving around from there.
-        #
-        # This whole process is the slow part of the script, even using the list-
-        # of-dictionaries method, which is apparently the fastest.
+
         if str(data.loc[row]['Time(hh:mm:ss)']) == 'Time(hh:mm:ss)':
             plate = plate + 1
         if re.match(time_regex, str(data.loc[row]['Time(hh:mm:ss)'])) is not None:
             single_row = {}
-            single_row.update(
-                Sample = sample_per_plate[plate],
-                A01  = data.loc[row]['1'],
-                A02  = data.loc[row]['2'],
-                A03  = data.loc[row]['3'],
-                A04  = data.loc[row]['4'],
-                A05  = data.loc[row]['5'],
-                A06  = data.loc[row]['6'],
-                A07  = data.loc[row]['7'],
-                A08  = data.loc[row]['8'],
-                A09  = data.loc[row]['9'],
-                A10 = data.loc[row]['10'],
-                A11 = data.loc[row]['11'],
-                A12 = data.loc[row]['12'],
-                B01  = data.loc[row + 1]['1'],
-                B02  = data.loc[row + 1]['2'],
-                B03  = data.loc[row + 1]['3'],
-                B04  = data.loc[row + 1]['4'],
-                B05  = data.loc[row + 1]['5'],
-                B06  = data.loc[row + 1]['6'],
-                B07  = data.loc[row + 1]['7'],
-                B08  = data.loc[row + 1]['8'],
-                B09  = data.loc[row + 1]['9'],
-                B10 = data.loc[row + 1]['10'],
-                B11 = data.loc[row + 1]['11'],
-                B12 = data.loc[row + 1]['12'],
-                C01  = data.loc[row + 2]['1'],
-                C02  = data.loc[row + 2]['2'],
-                C03  = data.loc[row + 2]['3'],
-                C04  = data.loc[row + 2]['4'],
-                C05  = data.loc[row + 2]['5'],
-                C06  = data.loc[row + 2]['6'],
-                C07  = data.loc[row + 2]['7'],
-                C08  = data.loc[row + 2]['8'],
-                C09  = data.loc[row + 2]['9'],
-                C10 = data.loc[row + 2]['10'],
-                C11 = data.loc[row + 2]['11'],
-                C12 = data.loc[row + 2]['12'],
-                D01  = data.loc[row + 3]['1'],
-                D02  = data.loc[row + 3]['2'],
-                D03  = data.loc[row + 3]['3'],
-                D04  = data.loc[row + 3]['4'],
-                D05  = data.loc[row + 3]['5'],
-                D06  = data.loc[row + 3]['6'],
-                D07  = data.loc[row + 3]['7'],
-                D08  = data.loc[row + 3]['8'],
-                D09  = data.loc[row + 3]['9'],
-                D10 = data.loc[row + 3]['10'],
-                D11 = data.loc[row + 3]['11'],
-                D12 = data.loc[row + 3]['12'],
-                E01  = data.loc[row + 4]['1'],
-                E02  = data.loc[row + 4]['2'],
-                E03  = data.loc[row + 4]['3'],
-                E04  = data.loc[row + 4]['4'],
-                E05  = data.loc[row + 4]['5'],
-                E06  = data.loc[row + 4]['6'],
-                E07  = data.loc[row + 4]['7'],
-                E08  = data.loc[row + 4]['8'],
-                E09  = data.loc[row + 4]['9'],
-                E10 = data.loc[row + 4]['10'],
-                E11 = data.loc[row + 4]['11'],
-                E12 = data.loc[row + 4]['12'],
-                F01  = data.loc[row + 5]['1'],
-                F02  = data.loc[row + 5]['2'],
-                F03  = data.loc[row + 5]['3'],
-                F04  = data.loc[row + 5]['4'],
-                F05  = data.loc[row + 5]['5'],
-                F06  = data.loc[row + 5]['6'],
-                F07  = data.loc[row + 5]['7'],
-                F08  = data.loc[row + 5]['8'],
-                F09  = data.loc[row + 5]['9'],
-                F10 = data.loc[row + 5]['10'],
-                F11 = data.loc[row + 5]['11'],
-                F12 = data.loc[row + 5]['12'],
-                G01  = data.loc[row + 6]['1'],
-                G02  = data.loc[row + 6]['2'],
-                G03  = data.loc[row + 6]['3'],
-                G04  = data.loc[row + 6]['4'],
-                G05  = data.loc[row + 6]['5'],
-                G06  = data.loc[row + 6]['6'],
-                G07  = data.loc[row + 6]['7'],
-                G08  = data.loc[row + 6]['8'],
-                G09  = data.loc[row + 6]['9'],
-                G10 = data.loc[row + 6]['10'],
-                G11 = data.loc[row + 6]['11'],
-                G12 = data.loc[row + 6]['12'],
-                H01  = data.loc[row + 7]['1'],
-                H02  = data.loc[row + 7]['2'],
-                H03  = data.loc[row + 7]['3'],
-                H04  = data.loc[row + 7]['4'],
-                H05  = data.loc[row + 7]['5'],
-                H06  = data.loc[row + 7]['6'],
-                H07  = data.loc[row + 7]['7'],
-                H08  = data.loc[row + 7]['8'],
-                H09  = data.loc[row + 7]['9'],
-                H10 = data.loc[row + 7]['10'],
-                H11 = data.loc[row + 7]['11'],
-                H12 = data.loc[row + 7]['12'],
-            )
+
+            single_row['Sample'] = sample_per_plate[plate]
+            for letter in string.ascii_uppercase[0:8]:
+                column_offset = ord(letter) - 65 # ord('A') is 65
+                for well in range(1,13):
+                    single_row[''.join([letter, f'{well:02}'])] = data.loc[row + column_offset][str(well)]
+
             rows_list.append(single_row)
 
     to_return = pd.DataFrame(rows_list)
@@ -210,7 +114,9 @@ def collect_data(file, time_increment, quiet):
         print('Done reading file')
 
     return to_return
+
 # 3 Main ----------------------------------------------------------------------
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'A script to assemble kinetic fluorescence readings from an old plate reader')
     renamers = parser.add_mutually_exclusive_group()
@@ -222,6 +128,8 @@ if __name__ == '__main__':
     renamers.add_argument('-r', '--rangerename', nargs = '+', help = 'Rename several wells at once. Give upper left and lower right well, then samples names (left to right, top to bottom)')
     parser.add_argument('--deletecol', nargs = '+', help = 'Ignore a column or columns')
     parser.add_argument('-q', '--quiet', default = False, action = 'store_true', help = 'Squelch messages. Default False')
+    parser.add_argument('--no-plots', default = False, action = 'store_true', help = 'Don\'t make R plots.')
+    parser.add_argument('--copy-manual', default = False, action = 'store_true', help = 'Copy R file for manual plot edits')
 
     args = parser.parse_args()
     outfile = args.outfile
@@ -233,6 +141,8 @@ if __name__ == '__main__':
     samples = args.samples
     range_rename = args.rangerename
     to_delete = args.deletecol
+    no_plots = args.no_plots
+    copy_man = args.copy_manual
 
     # Get directories and filenames in order
     if outfile is None:
@@ -265,10 +175,14 @@ if __name__ == '__main__':
 
     plate_data.to_csv(outfile, index = False)
 
-    if not quiet:
-        print('Making plots')
-    subprocess.run(['Rscript', '--quiet', os.path.join(script_path, 'make_plot.R'), outfile])
-    if os.path.isfile(os.path.join(script_path, 'Rplots.pdf')) :
-        os.remove(os.path.join(script_path, 'Rplots.pdf'))
+    if not no_plots:
+        if not quiet:
+            print('Making plots')
+        subprocess.run(['Rscript', '--quiet', os.path.join(script_path, 'make_plot.R'), outfile])
+        if os.path.isfile(os.path.join(script_path, 'Rplots.pdf')) :
+            os.remove(os.path.join(script_path, 'Rplots.pdf'))
+    if copy_manual:
+            shutil.copyfile(os.path.join(script_path, 'manual_plot.R'), os.path.join(outdir, 'manual_plot.R'))
+
     if not quiet:
         print('Done.')
