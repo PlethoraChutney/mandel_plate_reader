@@ -1,3 +1,4 @@
+# DEPRECATED
 # Plate Reader Reader
 
 The Mandel lab plate reader exports data in a near-useless format. Each plate is printed, in
